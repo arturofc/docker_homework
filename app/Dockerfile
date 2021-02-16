@@ -24,14 +24,21 @@ ENV APP_HOME=/home/app/src
 RUN addgroup app && useradd -r -d $HOME -s /bin/bash -g app app
 RUN mkdir -p $APP_HOME
 
-WORKDIR $APP_HOME
-
+# Copy compiled python packages
 COPY --from=builder "/app/wheels" /wheels
 RUN pip install --no-cache /wheels/*
 
-COPY ./src $APP_HOME
-RUN chown -R app:app $HOME
+# Setup app run
+COPY entrypoint.sh $HOME
+RUN chmod +x $HOME/entrypoint.sh
 
+COPY ./src $APP_HOME
+
+RUN chown -R app:app $HOME
 USER app
+
+WORKDIR $APP_HOME
+
+ENTRYPOINT ["/bin/bash", "-c", "$HOME/entrypoint.sh"]
 
 CMD ["flask", "run"]
