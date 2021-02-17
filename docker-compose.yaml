@@ -20,15 +20,19 @@ services:
     container_name: containerize_db_1
     image: postgres
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER:-appuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_DATABASE:-app}
     ports:
-      - ${DB_PORT:-5432}:5432
+      - 5432:5432
     volumes:
-      - ./db-data:/var/lib/postgresql/data:rw
+      - db_data:/var/lib/postgresql/data:rw
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 2s
       retries: 3
     restart: on-failure:3
+
+volumes:
+  db_data:
