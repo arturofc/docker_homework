@@ -48,7 +48,22 @@ docker-compose run app -- flask db upgrade
 ```
 Note: For local development, the application's source code ([src](app/src)) is mounted to the container at the flask app's main directory to avoid having to rebuild the image after each change
 
-## Potential Improvements:
+
+## Simple Intergration Testing
+```
+docker-compose up -d
+
+# Upload provided test.csv. Should return 200 status and `Success!` html body after redirect
+curl -i -L -F 'file=@test.tsv' http://localhost::${APP_PORT:-5000}/upload
+
+# Upload invalid file. Should return 200 status and `Invalid file` html body
+curl -i -L -F 'file=@README.md' http://localhost::${APP_PORT:-5000}/upload
+```
+
+## Potential Improvements / Next Steps:
 - Replace with [application.cfg](app/src/application.cfg) with a `config.py` file to enable the following
     - Generate database uri connection string from environment variables for local development so database credentials can be defined in one place
     - Modularize database authentication to use different methods in other environments. Such as IAM based auth or secrets-manager/vault lookup for credentials
+- Run unit testing framework(s) (pytest, coverage.py, etc.) in app service docker container
+    - Example Usage: `docker-compose run app -- cd /home/app/test  && python -m pytest -v ./test-reports:/home/app/test/reports`
+- Create a integration testing suite / playbook for testing more variations of test.csv
