@@ -13,6 +13,8 @@ services:
       - ./app/src:/home/app/src
     links:
       - db
+    depends_on:
+      - db
 
   db:
     container_name: containerize_db_1
@@ -22,3 +24,8 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
       - ${DB_PORT:-5432}:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
