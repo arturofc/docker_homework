@@ -17,8 +17,8 @@ RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
 ## Release Image ##
 FROM base
 
-ENV HOME=/home/app
-ENV APP_HOME=/home/app/src
+ENV HOME="/home/app"
+ENV APP_HOME="/home/app/src"
 
 # Create non-root application user
 RUN addgroup app && useradd -r -d $HOME -s /bin/bash -g app app
@@ -29,8 +29,8 @@ COPY --from=builder "/app/wheels" /wheels
 RUN pip install --no-cache /wheels/*
 
 # Setup app run
-COPY entrypoint.sh $HOME
-RUN chmod +x $HOME/entrypoint.sh
+COPY entrypoint.sh .
+RUN chmod +x /entrypoint.sh
 
 COPY ./src $APP_HOME
 
@@ -39,6 +39,6 @@ USER app
 
 WORKDIR $APP_HOME
 
-ENTRYPOINT ["/bin/bash", "-c", "$HOME/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["flask", "run"]
