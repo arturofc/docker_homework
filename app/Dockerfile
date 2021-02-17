@@ -2,6 +2,8 @@ FROM python:3.7-slim AS base
 
 ENV FLASK_RUN_HOST="0.0.0.0"
 ENV FLASK_RUN_PORT="5000"
+ENV DB_HOST=db
+ENV DB_PORT=5432
 
 RUN pip install --upgrade pip
 
@@ -10,15 +12,26 @@ FROM base AS builder
 
 WORKDIR /app
 
+RUN mkdir -p /app/opt
+
 # Python Dependencies
 COPY ./src/requirements.txt .
 RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+
+# Docker-Compose version 3 removes depends_on healthy condition support
+# wait-for-it utility: https://docs.docker.com/compose/startup-order
+RUN apt-get update && apt-get install -y wget
+RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh \
+    -O /app/opt/wait-for-it.sh \
+    && chmod +x /app/opt/wait-for-it.sh
 
 ## Release Image ##
 FROM base
 
 ENV HOME="/home/app"
 ENV APP_HOME="/home/app/src"
+
+COPY --from=builder "/app/opt" /opt
 
 # Create non-root application user
 RUN addgroup app && useradd -r -d $HOME -s /bin/bash -g app app

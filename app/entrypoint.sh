@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Peform Database Migrations
-flask db upgrade
-
-exec "$@"
+/opt/wait-for-it.sh $DB_HOST:$DB_PORT --timeout=5 --strict -- \
+    echo "Peforming database migrations.." && \
+    flask db upgrade &&
+    exec "$@"
